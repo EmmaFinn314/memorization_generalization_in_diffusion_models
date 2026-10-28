@@ -44,6 +44,7 @@ def plot_denoised_image( clean, noisy, denoised ,dir_name):
     clean = clean.detach().cpu().permute(0,2,3,1).squeeze().numpy()
     noisy = noisy.detach().cpu().permute(0,2,3,1).squeeze().numpy()
     denoised = denoised.detach().cpu().permute(0,2,3,1).squeeze().numpy()
+    ch_axis = -1 if clean.ndim == 4 else None # colour images keep a trailing channel axis
 
     f, axes = plt.subplots(3, 3 )
     ax = axes.ravel()
@@ -55,12 +56,12 @@ def plot_denoised_image( clean, noisy, denoised ,dir_name):
         plt.colorbar(fig, ax=ax[i], fraction=.05)
 
         fig = ax[i+1].imshow(noisy[j], 'gray')
-        ax[i+1].set_title( 'PSNR '+ str(round(peak_signal_noise_ratio(clean[j],noisy[j], data_range=1),3) ) + '\n SSIM ' + str(round(structural_similarity(clean[j], noisy[j],multichannel=True),3)), fontsize = 5)
+        ax[i+1].set_title( 'PSNR '+ str(round(peak_signal_noise_ratio(clean[j],noisy[j], data_range=1),3) ) + '\n SSIM ' + str(round(structural_similarity(clean[j], noisy[j], data_range=1, channel_axis=ch_axis),3)), fontsize = 5)
         ax[i+1].set_axis_off()
         plt.colorbar(fig, ax=ax[i+1], fraction=.05)
 
         fig = ax[i+2].imshow(denoised[j], 'gray')
-        ax[i+2].set_title(  'PSNR '+ str(round(peak_signal_noise_ratio(clean[j],denoised[j], data_range=1),3)) + '\n SSIM ' + str(round(structural_similarity(clean[j], denoised[j] ,multichannel=True),3)),fontsize = 5)
+        ax[i+2].set_title(  'PSNR '+ str(round(peak_signal_noise_ratio(clean[j],denoised[j], data_range=1),3)) + '\n SSIM ' + str(round(structural_similarity(clean[j], denoised[j], data_range=1, channel_axis=ch_axis),3)),fontsize = 5)
         ax[i+2].set_axis_off()
         plt.colorbar(fig, ax=ax[i+2], fraction=.05)
 
@@ -159,12 +160,12 @@ def plot_sample(x, corrupted, sample):
         axs[0].set_title('original')
 
         fig = axs[1].imshow(corrupted.squeeze(-1), 'gray',vmin=0, vmax = 1)
-        ssim = np.round(structural_similarity(x.squeeze(-1).numpy(), corrupted.squeeze(-1).numpy()  ) ,3 )
+        ssim = np.round(structural_similarity(x.squeeze(-1).numpy(), corrupted.squeeze(-1).numpy(), data_range=1) ,3 )
         psnr = np.round(peak_signal_noise_ratio(x.numpy(), corrupted.numpy() , data_range = 1),2)
         axs[1].set_title('partially measured image \n psnr: '+str( psnr) + '\n ssim '+ str(ssim) );
 
         fig = axs[2].imshow(sample.squeeze(-1),'gray' ,vmin=0, vmax = 1)
-        ssim = np.round(structural_similarity(x.squeeze(-1).numpy(), sample.squeeze(-1).numpy()  ) ,3 )
+        ssim = np.round(structural_similarity(x.squeeze(-1).numpy(), sample.squeeze(-1).numpy(), data_range=1) ,3 )
         psnr = np.round(peak_signal_noise_ratio(x.numpy(), sample.numpy(), data_range = 1 ),2)
         axs[2].set_title('reconstructed \n psnr: '+str( psnr) + '\n ssim '+ str(ssim) );
 
@@ -174,12 +175,12 @@ def plot_sample(x, corrupted, sample):
         axs[0].set_title('original')
 
         fig = axs[1].imshow( torch.clip(corrupted,0,1), vmin=0, vmax = 1)
-        ssim = np.round(structural_similarity(x.numpy(), corrupted.numpy(), multichannel=True  ) ,3 )
+        ssim = np.round(structural_similarity(x.numpy(), corrupted.numpy(), data_range=1, channel_axis=-1) ,3 )
         psnr = np.round(peak_signal_noise_ratio(x.numpy(), corrupted.numpy() , data_range = 1), 2)
         axs[1].set_title('partially measured image \n psnr: '+str( psnr) + '\n ssim '+ str(ssim) );
 
         fig = axs[2].imshow(torch.clip(sample, 0,1),vmin=0, vmax = 1)
-        ssim = np.round(structural_similarity(x.numpy(), sample.numpy() , multichannel=True) ,3)
+        ssim = np.round(structural_similarity(x.numpy(), sample.numpy(), data_range=1, channel_axis=-1) ,3)
         psnr = np.round(peak_signal_noise_ratio(x.numpy(), sample.numpy() , data_range = 1),2)
         axs[2].set_title('reconstructed \n psnr: '+str( psnr) + '\n ssim '+ str(ssim) );
 
@@ -326,9 +327,9 @@ def plot_denoising(clean, noisy, denoised, sup_label, device, vmin=0, vmax=1, im
     axs[0].imshow(clean, 'gray', vmin=vmin, vmax = vmax) 
     axs[0].set_title('clean')
     axs[1].imshow(noisy, 'gray',vmin=vmin, vmax = vmax)
-    axs[1].set_title(  'PSNR '+ str(round(peak_signal_noise_ratio(clean,noisy, data_range=1),3)) + '\n SSIM ' + str(round(structural_similarity(clean, noisy ,channel_axis=True),3)),fontsize = 12)    
+    axs[1].set_title(  'PSNR '+ str(round(peak_signal_noise_ratio(clean,noisy, data_range=1),3)) + '\n SSIM ' + str(round(structural_similarity(clean, noisy, data_range=1),3)),fontsize = 12)    
     axs[2].imshow(denoised, 'gray',vmin=vmin, vmax = vmax)
-    axs[2].set_title(  'PSNR '+ str(round(peak_signal_noise_ratio(clean,denoised, data_range=1),3)) + '\n SSIM ' + str(round(structural_similarity(clean, denoised ,channel_axis=True),3)),fontsize = 12)    
+    axs[2].set_title(  'PSNR '+ str(round(peak_signal_noise_ratio(clean,denoised, data_range=1),3)) + '\n SSIM ' + str(round(structural_similarity(clean, denoised, data_range=1),3)),fontsize = 12)    
     
     for i in range(3): 
         axs[i].axis('off')

@@ -104,7 +104,7 @@ class random_basis:
         super(random_basis, self).__init__()
         n_ch , im_d1, im_d2 = x_size
         self.x_size = x_size
-        self.U, _ = torch.qr(torch.randn(int(np.prod(x_size)),int(np.prod(x_size)*p) ))
+        self.U, _ = torch.linalg.qr(torch.randn(int(np.prod(x_size)),int(np.prod(x_size)*p) ))
         if torch.cuda.is_available():
             self.U = self.U.cuda()
 
